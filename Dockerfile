@@ -82,8 +82,16 @@ RUN apt-get remove --purge --auto-remove -y \
         
 RUN rm -fr /tmp/*
 
-RUN echo "* * * * * www-data /usr/local/bin/php /var/www/html/bin/magento cron:run 2>&1 | grep -v "Ran jobs by schedule" >> /var/www/html/var/log/magento.cron.log" >> /etc/crontab
+COPY ./mage-cron.1 /etc/cron.d/mage-cron
+RUN crontab -u www-data /etc/cron.d/mage-cron
+RUN chmod u+s /usr/sbin/cron
+
+#RUN echo "* * * * * www-data /usr/local/bin/php /var/www/html/bin/magento cron:run 2>&1 | grep -v "Ran jobs by schedule" >> /var/www/html/var/log/magento.cron.log" >> /etc/crontab
+
+RUN usermod -s /bin/bash www-data
+
+USER www-data
 
 EXPOSE 9000
 
-CMD bash -c "cron"
+CMD bash -c "cron && php-fpm"
